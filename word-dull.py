@@ -9,7 +9,7 @@ with open(pathdoc) as wordfile:
 
 let_cnt = 5
 
-words = list({word for word in wordsall if let_cnt == len(word)})
+words = list({word.lower() for word in wordsall if let_cnt == len(word)})
 
 
 def pare(wordlist, guess):  # gets info about letters & pares down list

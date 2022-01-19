@@ -66,7 +66,11 @@ def organize(words):  # put in optimal guessing order
                     freqlist.append(word)
             except:  # that letter isn't in the word
                 pass
+    if len(freqlist) < len(words):
+        extras = (word for word in words)
+        freqlist.extend(extras)
     topwords = Counter(freqlist).most_common()
+    # print(topwords)
     for i in range(len(topwords)):
         outlist.append(topwords[i][0])
     return outlist
@@ -89,7 +93,7 @@ def suggest(wordlist, numwords):  # suggests the next input (max. letter usage)
     if len(newwords) < numwords + 1:
         wordsout = newwords
     else:
-        while len(newwords) > numwords - 1 and i < 10:
+        while len(newwords) > numwords and i < 10:
             wordsout = organize(newwords)
             remlist = []
             try:
@@ -129,6 +133,6 @@ while i < 6 and len(words) > 1:
 
 if len(words) > 0:
     print("\nDone:")
-    print(words[0])
+    print(words[0].upper())
 else:
     print("No more potential words")

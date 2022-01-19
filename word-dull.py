@@ -51,7 +51,28 @@ def hasdupes(wrd_input):
     return byesno
 
 
-def suggest(wordlist, numwords):  # suggests the next input (max. letter usage?)
+def organize(words):  # put in optimal guessing order
+    outlist = []
+    freqlist = []
+    toplets = Counter("".join(words)).most_common(10)
+    for i in range(len(toplets)):
+        positions = []
+        for word in words:  # find most frequent letter placement
+            positions.append(str(word.find(toplets[i][0])))
+        toppos = Counter("".join(positions)).most_common(1)
+        for word in words:  # find words with that letter placement
+            try:
+                if word.find(toplets[i][0]) == int(toppos[0][0]):  # correct pos
+                    freqlist.append(word)
+            except:  # that letter isn't in the word
+                pass
+    topwords = Counter(freqlist).most_common()
+    for i in range(len(topwords)):
+        outlist.append(topwords[i][0])
+    return outlist
+
+
+def suggest(wordlist, numwords):  # suggests the next input (max. letter usage)
     toplets = Counter("".join(wordlist)).most_common(
         10)  # find top 10 most used letters
     newwords = []
@@ -69,11 +90,14 @@ def suggest(wordlist, numwords):  # suggests the next input (max. letter usage?)
         wordsout = newwords
     else:
         while len(newwords) > numwords - 1 and i < 10:
-            wordsout = newwords
+            wordsout = organize(newwords)
             remlist = []
-            for word in newwords:
-                if word.find(toplets[i][0]) < 0:
-                    remlist.append(word)
+            try:
+                for word in newwords:
+                    if word.find(toplets[i][0]) < 0:
+                        remlist.append(word)
+            except:  # i got too big
+                pass
             newwords = [x for x in newwords if x not in remlist]
             i += 1
     newwords = []
@@ -97,7 +121,7 @@ while i < 6 and len(words) > 1:
     j = -2
     while attempt.lower() == "more":  # if more word suggestions are requested
         j = j + 3
-        sugg = suggest(words, j)
+        sugg = suggest(words, min(len(words), j))
         attempt = input(
             "\nEnter next word guess or \"more\" (suggested: " + sugg.upper() + ")\n")
     words = pare(words, attempt)

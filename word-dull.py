@@ -23,17 +23,23 @@ def pare(wordlist, guess):  # gets info about letters & pares down list
     print("X - the letter is in the word, but not at that location")
     feedback = input(wrd.strip() + "\n").lower()
     fdlst = [x.strip() for x in feedback.split(",")]
+    yesses = []
     for i in range(len(fdlst)):
         remlist = []
         for word in wordlist:
             if fdlst[i] == "y":
+                yesses.append(guess[i])
                 if word[i] != guess[i]:  # correct location
                     remlist.append(word)
             elif fdlst[i] == "x":
-                if word[i] == guess[i] or word.find(guess[i]) < 0:
+                yesses.append(guess[i])
+                if word[i] == guess[i] or word.count(guess[i]) < 1:
                     remlist.append(word)
             elif fdlst[i] == "n":
-                if word.find(guess[i]) > -1:
+                if guess[i] in yesses:  # only remove for that letter position
+                    if word[i] == guess[i]:
+                        remlist.append(word)
+                elif word.count(guess[i]) > 0:  # remove for the whole word
                     remlist.append(word)
         if len(remlist) > 0:
             remlist = list(set(remlist))
@@ -54,23 +60,25 @@ def hasdupes(wrd_input):
 def organize(words):  # put in optimal guessing order
     outlist = []
     freqlist = []
-    toplets = Counter("".join(words)).most_common(10)
+    wordsadded = []
+    toplets = Counter("".join(words)).most_common()
     for i in range(len(toplets)):
         positions = []
         for word in words:  # find most frequent letter placement
-            positions.append(str(word.find(toplets[i][0])))
-        toppos = Counter("".join(positions)).most_common(1)
+            positions.append(word.find(toplets[i][0]))
+        toppos = max(positions, key=positions.count)
         for word in words:  # find words with that letter placement
             try:
-                if word.find(toplets[i][0]) == int(toppos[0][0]):  # correct pos
+                if word.find(toplets[i][0]) == toppos and not hasdupes(word):  # correct pos
                     freqlist.append(word)
+                    if word not in wordsadded:
+                        wordsadded.append(word)
             except:  # that letter isn't in the word
                 pass
-    if len(freqlist) < len(words):
-        extras = (word for word in words)
-        freqlist.extend(extras)
-    topwords = Counter(freqlist).most_common()
-    # print(topwords)
+    for word in words:  # add any that haven't been added
+        if not word in wordsadded:
+            freqlist.append(word)
+    topwords = Counter(freqlist).most_common(20)
     for i in range(len(topwords)):
         outlist.append(topwords[i][0])
     return outlist
@@ -83,22 +91,22 @@ def suggest(wordlist, numwords):  # suggests the next input (max. letter usage)
     wordsout = []
     for word in wordlist:
         # has letter, no dupes
-        if not hasdupes(word) and word.find(toplets[0][0]) > -1:
+        if not hasdupes(word) and word.count(toplets[0][0]) > 0:
             newwords.append(word)
-    if len(newwords) < numwords:  # redo, allow dupes
+    if len(newwords) < numwords:  # redo, allow duplicates
         for word in wordlist:
-            if word.find(toplets[0][0]) > -1:  # has letter
+            if word.count(toplets[0][0]) > 0:  # has letter
                 newwords.append(word)
     i = 1
     if len(newwords) < numwords + 1:
         wordsout = newwords
     else:
-        while len(newwords) > numwords and i < 10:
+        while len(newwords) > numwords:
             wordsout = organize(newwords)
             remlist = []
             try:
                 for word in newwords:
-                    if word.find(toplets[i][0]) < 0:
+                    if word.count(toplets[i][0]) < 1:
                         remlist.append(word)
             except:  # i got too big
                 pass
@@ -113,8 +121,12 @@ def suggest(wordlist, numwords):  # suggests the next input (max. letter usage)
     return ", ".join(newwords)
 
 
-sugg = suggest(words, 3)
-print("\n" + sugg)
+# Find top initial guess
+# all_org = organize(words)
+# sugg=[]
+# for i in range(3):
+#     sugg.append(all_org[i])
+# print("\n" + ", ".join(sugg))
 
 seed = input("\nEnter initial word guess: ").lower()
 words = pare(words, seed)

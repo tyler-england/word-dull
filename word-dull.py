@@ -60,13 +60,14 @@ def hasdupes(wrd_input):
 def organize(words):  # put in optimal guessing order
     outlist = []
     freqlist = []
-    wordsadded = []
+    wordsadded=[]
     toplets = Counter("".join(words)).most_common()
     for i in range(len(toplets)):
         positions = []
         for word in words:  # find most frequent letter placement
-            positions.append(word.find(toplets[i][0]))
-        toppos = max(positions, key=positions.count)
+            if word.find(toplets[i][0])>-1:
+                positions.append(word.find(toplets[i][0]))
+        toppos = max(positions,key=positions.count)
         for word in words:  # find words with that letter placement
             try:
                 if word.find(toplets[i][0]) == toppos and not hasdupes(word):  # correct pos
@@ -75,10 +76,11 @@ def organize(words):  # put in optimal guessing order
                         wordsadded.append(word)
             except:  # that letter isn't in the word
                 pass
-    for word in words:  # add any that haven't been added
+        #print(toplets[i],toppos)
+    for word in words:#add any that haven't been added
         if not word in wordsadded:
             freqlist.append(word)
-    topwords = Counter(freqlist).most_common(20)
+    topwords = Counter(freqlist).most_common(50)
     for i in range(len(topwords)):
         outlist.append(topwords[i][0])
     return outlist
